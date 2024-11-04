@@ -11,7 +11,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an __.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an A-.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -23,6 +23,11 @@ execute:
 
 ```{r}
 #| label: wd-1-csv
+# Lab 3 Question 2
+
+df <- read_csv(file = here::here("data", 
+                                 "teacher_evals.csv"),
+               show_col_types = FALSE)
 
 ```
 
@@ -30,6 +35,8 @@ execute:
 
 ```{r}
 #| label: wd-1-xlsx
+
+
 
 ```
 
@@ -44,6 +51,22 @@ execute:
 
 ```{r}
 #| label: wd-2
+# Lab 3 Question 4 (Revised)
+
+teacher_evals_clean <- df %>%
+  filter(no_participants >= 10) %>%
+  mutate(teacher_id = as.factor(teacher_id)) %>%
+  rename(sex = gender) %>%
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants, 
+         resp_share,
+         SET_score_avg, 
+         percent_failed_cur, 
+         academic_degree,
+         seniority,
+         sex)
 
 ```
 
@@ -53,13 +76,33 @@ execute:
 
 ```{r}
 #| label: wd-3-numeric
+# Lab 3 Question 10 (Revised)
+# Utilized the filter min() or max() to extract all possible values
+
+teacher_evals_clean %>%
+  filter(question_no == 901) %>%
+  group_by(teacher_id) %>%
+  summarize(mean_set_score = mean(SET_score_avg),
+            .groups = "drop") %>%
+  filter(mean_set_score == max(mean_set_score) | 
+         mean_set_score == min(mean_set_score))
 
 ```
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
 ```{r}
-#| label: wd-3-string
+# label: wd-3-string
+# Lab 5 Question 1 (Step 2)
+
+person %>%
+  filter((address_street_name == "Northwestern Dr" & 
+            address_number == max(address_number)) |
+         (str_detect(name, "Annabel") & 
+            address_street_name == "Franklin Ave")) %>%
+  inner_join(interview, 
+             by = join_by(id == person_id)) %>%
+  pull(transcript)
 
 ```
 
@@ -67,13 +110,30 @@ execute:
 
 ```{r}
 #| label: wd-3-factor
+# Lab 3 Question 12 (Revised)
 
+teacher_evals_clean %>%
+  filter(sex == "female",
+         academic_degree %in% c("dr" , "prof")) %>%
+  group_by(teacher_id) %>%
+  summarize(average_response = mean(resp_share),
+            .groups = "drop") %>%
+  filter(average_response == max(average_response) |
+         average_response == min(average_response))
 ```
 
 -   date (example must use functions from **lubridate**)
 
 ```{r}
 #| label: wd-3-date
+# Lab 5 Question 1 (Step 2) (Revised)
+
+crime_scene_report %>%
+  mutate(date = ymd(date)) %>%
+  filter(date == ymd("2018-01-15"), 
+         type == "murder", 
+         city == "SQL City") %>%
+  pull(description)
 
 ```
 
@@ -97,6 +157,72 @@ execute:
 
 ```{r}
 #| label: wd-4-factor
+# Lab 4 (Question 3 - Revised)
+# Utilized forcats instead of case_when()
+
+ca_childcare <- ca_childcare |> 
+  mutate(county_name = str_remove(county_name, " County")) |>
+  mutate(Region = fct_collapse(
+    county_name,
+    "Superior California" = c("Butte", 
+                              "Colusa", 
+                              "El Dorado", 
+                              "Glenn", 
+                              "Lassen", 
+                              "Modoc", 
+                              "Nevada", 
+                              "Placer", 
+                              "Plumas", 
+                              "Sacramento", 
+                              "Shasta", 
+                              "Sierra", 
+                              "Siskiyou", 
+                              "Sutter", 
+                              "Tehama", 
+                              "Yolo", 
+                              "Yuba"),
+    "North Coast" = c("Del Norte", 
+                      "Humboldt", 
+                      "Lake", 
+                      "Mendocino", 
+                      "Napa", 
+                      "Sonoma", 
+                      "Trinity"),
+    "San Francisco Bay Area" = c("Alameda", 
+                                 "Contra Costa", 
+                                 "Marin", 
+                                 "San Francisco", 
+                                 "San Mateo", 
+                                 "Santa Clara", 
+                                 "Solano"),
+    "Northern San Joaquin Valley" = c("Alpine", 
+                                      "Amador", 
+                                      "Calaveras", 
+                                      "Madera", 
+                                      "Mariposa", 
+                                      "Merced", 
+                                      "Mono", 
+                                      "San Joaquin", 
+                                      "Stanislaus", 
+                                      "Tuolumne"),
+    "Central Coast" = c("Monterey", 
+                        "San Benito", 
+                        "San Luis Obispo", 
+                        "Santa Barbara", 
+                        "Santa Cruz", 
+                        "Ventura"),
+    "Southern San Joaquin Valley" = c("Fresno", 
+                                      "Inyo", 
+                                      "Kern", 
+                                      "Kings", 
+                                      "Tulare"),
+    "Inland Empire" = c("Riverside", 
+                        "San Bernardino"),
+    "Los Angeles County" = "Los Angeles",
+    "Orange County" = "Orange",
+    "San Diego - Imperial" = c("Imperial", 
+                               "San Diego")
+  ))
 
 ```
 
@@ -104,7 +230,14 @@ execute:
 
 ```{r}
 #| label: wd-4-date
+# Lab 5 (Step 1 - Revised)
 
+crime_scene_report %>%
+  mutate(date = ymd(date)) %>%
+  filter(date == ymd("2018-01-15"), 
+         type == "murder", 
+         city == "SQL City") %>%
+  pull(description)
 ```
 
 **WD-5: I can use mutating joins to combine multiple dataframes.**
@@ -113,7 +246,16 @@ execute:
 
 ```{r}
 #| label: wd-5-left
+# Lab 5 (Step 2 - Revised)
 
+person %>%
+  filter((address_street_name == "Northwestern Dr" & 
+            address_number == max(address_number)) |
+         (str_detect(name, "Annabel") & 
+            address_street_name == "Franklin Ave")) %>%
+  left_join(interview, 
+             by = join_by(id == person_id)) %>%
+  pull(transcript)
 ```
 
 -   `right_join()`
@@ -127,13 +269,47 @@ execute:
 
 ```{r}
 #| label: wd-5-inner
+# Lab 5 (Step 4 - Revised)
 
+facebook_event_checkin %>%
+  mutate(date = ymd(date)) %>% 
+  filter(event_name == "SQL Symphony Concert",
+         year(date) == 2017, 
+         month(date) == 12) %>%
+  group_by(person_id) %>%
+  summarize(attendance = n()) %>%
+  filter(attendance >= 3) %>%
+  inner_join(person, 
+             join_by(person_id == id)) %>%
+  inner_join(drivers_license, 
+             join_by(license_id == id)) %>%
+  filter(height %in% c(65,66,67),
+         hair_color == "red",
+         car_make == "Tesla",
+         car_model == "Model S") %>%
+  pull(name)
 ```
 
 -   `full_join()`
 
 ```{r}
 #| label: wd-5-full
+# Lab 5 (Step 3 - Revised)
+
+get_fit_now_member %>%
+  inner_join(get_fit_now_check_in, join_by(id == membership_id)) %>%
+  mutate(check_in_date = ymd(check_in_date)) %>%
+  filter(membership_status == "gold",
+         str_detect(id, "48Z."),
+         check_in_date == ymd("2018-01-09")) %>%
+  full_join(person, 
+             by = join_by(person_id == id)) %>%
+  inner_join(drivers_license, 
+             join_by(license_id == id)) %>%
+  filter(str_detect(plate_number, "H42W")) %>%
+  inner_join(interview, 
+             by = join_by(person_id)) %>%
+  pull(transcript)
 
 ```
 
@@ -159,6 +335,68 @@ execute:
 
 ```{r}
 #| label: wd-7-long
+# Lab 4 Question 3
+
+custom_colors <- c(
+  "San Francisco Bay Area" = "#90EE90",   
+  "Orange County" = "#D3D3D3",           
+  "Los Angeles County" = "#F4A460",       
+  "Northern San Joaquin Valley" = "#FFD700",  
+  "Central Coast" = "#FFFF00",            
+  "Inland Empire" = "#4682B4",           
+  "Superior California" = "#BA55D3",      
+  "Southern San Joaquin Valley" = "#FF0000",  
+  "San Diego - Imperial" = "#8B4513",     
+  "North Coast" = "#2F2F2F"               
+)
+
+
+ca_childcare %>% 
+  pivot_longer(cols = mc_infant: mc_preschool,
+               names_to = "Type_Childcare",
+               values_to = "Median_Price") %>%
+  mutate(Type_Childcare = recode(Type_Childcare, 
+                                 mc_infant = "Infant", 
+                                 mc_preschool = "Preschool", 
+                                 mc_toddler = "Toddler"),
+         Type_Childcare = factor(Type_Childcare, 
+                                 levels = c("Infant", 
+                                            "Toddler", 
+                                            "Preschool")),
+         Region = factor(Region, 
+                         levels = c("San Francisco Bay Area", 
+                                            "Orange County", 
+                                            "Los Angeles County", 
+                                            "Northern San Joaquin Valley", 
+                                            "Central Coast", 
+                                            "Inland Empire", 
+                                            "Superior California", 
+                                            "Southern San Joaquin Valley", 
+                                            "San Diego - Imperial", 
+                                            "North Coast"))) %>%
+  ggplot(aes(x = study_year, 
+             y = Median_Price, 
+             color = Region)) +
+  geom_point()+
+  geom_smooth(method = "loess", 
+              se = TRUE) +
+  facet_wrap(~Type_Childcare, 
+             nrow = 1)+
+  scale_y_continuous(limits = c(100, 500)) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_manual(name = "California Region", 
+                     values = custom_colors) +
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year", 
+       y = "") +
+  theme_bw()+
+  theme(
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 6)
+    ) + 
+  coord_fixed(ratio = 0.03)
 
 ```
 
@@ -166,6 +404,15 @@ execute:
 
 ```{r}
 #| label: wd-7-wide
+# Lab 4 Question 4 (Revised)
+
+ca_childcare %>%
+  filter(study_year == 2008 | 
+         study_year == 2018) %>%
+  group_by(Region, study_year) %>%
+  summarise(median_income =  median(mhi_2018)) %>%
+  pivot_wider(names_from = study_year, values_from = median_income) %>%
+  arrange(by = `2018` )
 
 ```
 
@@ -181,13 +428,33 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-2-1
+# Lab 2 Question 8
 
+ggplot(df, aes(x = species, y = weight)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(alpha = 0.3, color = "steelblue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(
+    x = "Species",
+    y = "",
+    subtitle = "Hindfoot Length (mm)",
+    title = "Boxplot of Hindfoot Length (mm) by Species")
 ```
 
 -   Example of **dplyr** pipeline
 
 ```{r}
 #| label: r-2-2
+# Lab 3 Question 12 
+
+teacher_evals_clean %>%
+  filter(sex == "female",
+         academic_degree %in% c("dr" , "prof")) %>%
+  group_by(teacher_id) %>%
+  summarize(average_response = mean(resp_share),
+            .groups = "drop") %>%
+  filter(average_response == max(average_response) |
+         average_response == min(average_response))
 
 ```
 
@@ -195,7 +462,22 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: r-2-3
+# Lab 3 (Question 4 - Revised)
 
+teacher_evals_clean <- df %>%
+  filter(no_participants >= 10) %>%
+  mutate(teacher_id = as.factor(teacher_id)) %>%
+  rename(sex = gender) %>%
+  select(course_id,
+         teacher_id,
+         question_no,
+         no_participants, 
+         resp_share,
+         SET_score_avg, 
+         percent_failed_cur, 
+         academic_degree,
+         seniority,
+         sex)
 ```
 
 **R-3: I can write robust programs that are resistant to changes in inputs.**
@@ -222,21 +504,102 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-1-num
+# Lab 4 (Question 7 - Revised)
 
+ggplot(ca_childcare, aes(x = mhi_2018, 
+                         y = mc_infant)) +
+  geom_point() +
+  geom_smooth(method = "lm", 
+              se = FALSE, 
+              color = "blue") +
+  labs(title = "Relationship of Median Household Income and Weekly Price for Infants in Childcare", 
+       x = "Median Household Income (2018 dollars)",
+       y = "Median Weekly Infant Care Cost ($)")
 ```
 
 -   at least one numeric variable and one categorical variable
 
 ```{r}
 #| label: dvs-2-num-cat
+# Lab 2 (Question 16 - Revised)
 
+ggplot(df, aes(x = weight, y = species)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(alpha = 0.3, color = "steelblue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(
+    subtitle = "Species",
+    y = "",
+    x = "Hindfoot Length (mm)",
+    title = "Boxplot of Hindfoot Length (mm) by Species")
 ```
 
 -   at least two categorical variables
 
 ```{r}
 #| label: dvs-2-cat
+# Lab 4 (Question 6 - Revised)
 
+custom_colors <- c(
+  "San Francisco Bay Area" = "#90EE90",   
+  "Orange County" = "#D3D3D3",           
+  "Los Angeles County" = "#F4A460",       
+  "Northern San Joaquin Valley" = "#FFD700",  
+  "Central Coast" = "#FFFF00",            
+  "Inland Empire" = "#4682B4",           
+  "Superior California" = "#BA55D3",      
+  "Southern San Joaquin Valley" = "#FF0000",  
+  "San Diego - Imperial" = "#8B4513",     
+  "North Coast" = "#2F2F2F"               
+)
+
+
+ca_childcare %>% 
+  pivot_longer(cols = mc_infant: mc_preschool,
+               names_to = "Type_Childcare",
+               values_to = "Median_Price") %>%
+  mutate(Type_Childcare = recode(Type_Childcare, 
+                                 mc_infant = "Infant", 
+                                 mc_preschool = "Preschool", 
+                                 mc_toddler = "Toddler"),
+         Type_Childcare = factor(Type_Childcare, 
+                                 levels = c("Infant", 
+                                            "Toddler", 
+                                            "Preschool")),
+         Region = factor(Region, 
+                         levels = c("San Francisco Bay Area", 
+                                            "Orange County", 
+                                            "Los Angeles County", 
+                                            "Northern San Joaquin Valley", 
+                                            "Central Coast", 
+                                            "Inland Empire", 
+                                            "Superior California", 
+                                            "Southern San Joaquin Valley", 
+                                            "San Diego - Imperial", 
+                                            "North Coast"))) %>%
+  ggplot(aes(x = study_year, 
+             y = Median_Price, 
+             color = Region)) +
+  geom_point()+
+  geom_smooth(method = "loess", 
+              se = TRUE) +
+  facet_wrap(~Type_Childcare, 
+             nrow = 1)+
+  scale_y_continuous(limits = c(100, 500)) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_manual(name = "California Region", 
+                     values = custom_colors) +
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year", 
+       y = "") +
+  theme_bw()+
+  theme(
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 6)
+    ) + 
+  coord_fixed(ratio = 0.03)
 ```
 
 -   dates (timeseries plot)
@@ -252,6 +615,17 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-1
+# Lab 2 Question 16 (Revised)
+
+ggplot(df, aes(x = weight, y = species)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_jitter(alpha = 0.3, color = "steelblue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))+
+  labs(
+    subtitle = "Species",
+    y = "",
+    x = "Hindfoot Length (mm)",
+    title = "Boxplot of Hindfoot Length (mm) by Species")
 
 ```
 
@@ -259,6 +633,18 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-2
+# Lab 2 (Question 4 - Revised)
+
+ggplot(df, aes(x = weight, 
+               y = hindfoot_length)) +
+  geom_point(alpha = 0.5) +
+  facet_wrap(~ species) +
+  labs(
+    title = "Plot of the Relationship between Weight and Hindfoot Length by Species",
+    x = "Weight (g)",
+    subtitle = "Hindfoot Length (mm)",
+    y = ""
+  )
 
 ```
 
@@ -266,6 +652,68 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-2-3
+# Lab 4 Question 6 (Revised)
+
+custom_colors <- c(
+  "San Francisco Bay Area" = "#90EE90",   
+  "Orange County" = "#D3D3D3",           
+  "Los Angeles County" = "#F4A460",       
+  "Northern San Joaquin Valley" = "#FFD700",  
+  "Central Coast" = "#FFFF00",            
+  "Inland Empire" = "#4682B4",           
+  "Superior California" = "#BA55D3",      
+  "Southern San Joaquin Valley" = "#FF0000",  
+  "San Diego - Imperial" = "#8B4513",     
+  "North Coast" = "#2F2F2F"               
+)
+
+
+ca_childcare %>% 
+  pivot_longer(cols = mc_infant: mc_preschool,
+               names_to = "Type_Childcare",
+               values_to = "Median_Price") %>%
+  mutate(Type_Childcare = recode(Type_Childcare, 
+                                 mc_infant = "Infant", 
+                                 mc_preschool = "Preschool", 
+                                 mc_toddler = "Toddler"),
+         Type_Childcare = factor(Type_Childcare, 
+                                 levels = c("Infant", 
+                                            "Toddler", 
+                                            "Preschool")),
+         Region = factor(Region, 
+                         levels = c("San Francisco Bay Area", 
+                                            "Orange County", 
+                                            "Los Angeles County", 
+                                            "Northern San Joaquin Valley", 
+                                            "Central Coast", 
+                                            "Inland Empire", 
+                                            "Superior California", 
+                                            "Southern San Joaquin Valley", 
+                                            "San Diego - Imperial", 
+                                            "North Coast"))) %>%
+  ggplot(aes(x = study_year, 
+             y = Median_Price, 
+             color = Region)) +
+  geom_point()+
+  geom_smooth(method = "loess", 
+              se = TRUE) +
+  facet_wrap(~Type_Childcare, 
+             nrow = 1)+
+  scale_y_continuous(limits = c(100, 500)) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_manual(name = "California Region", 
+                     values = custom_colors) +
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year", 
+       y = "") +
+  theme_bw()+
+  theme(
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 6)
+    ) + 
+  coord_fixed(ratio = 0.03)
 
 ```
 
@@ -275,7 +723,19 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-3-1
+# Challenge 3 Question 13
 
+ggplot(data = teacher_evals_compare, 
+       aes(sen_level, 
+           fill = SET_level)) +
+  geom_bar(stat = "count", 
+           position = "stack") +
+  scale_fill_manual(values = c("excellent" = "dodgerblue", 
+                               "standard" = "orange"), 
+                    name = "SET Level") +
+  labs(x = "Seniority of Instructor",
+       y = NULL,
+       subtitle = "Number of Sections")
 ```
 
 -   I can use annotations
@@ -289,6 +749,19 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-3-3
+# Challenge 2 
+
+ggplot(surveys, aes(x = weight, y = species, fill = genus)) +
+  geom_density_ridges(scale = 1, alpha = 0.7) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_fill_npg() +
+  labs(
+    x = "Weight (g)",
+    y = "", 
+    subtitle = "Rodent Species",
+    title = "Ridge Plot of Weight by Species"
+  ) +
+  theme(legend.position = "none")
 
 ```
 
@@ -298,14 +771,24 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-4-summarize
+# Lab 4 Question 5 (Revised)
 
+ca_childcare %>%
+  filter(study_year == 2018) %>%
+  group_by(Region) %>%
+  summarize(median_price = median(mc_infant)) %>%
+  slice_min(order_by = median_price)
 ```
 
 -   Example using `across()`
 
 ```{r}
 #| label: dvs-4-across
+# Lab 3 Question 6 (Revised)
 
+teacher_evals_clean %>%
+  summarize(across(.cols = course_id:teacher_id,
+                   .fns = ~n_distinct(.x)))
 ```
 
 **DVS-5: I can find summaries of variables across multiple groups.**
@@ -314,6 +797,17 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-5-1
+# Lab 3 Question 7 (Revised)
+
+teacher_evals_clean %>%
+  select(academic_degree, 
+         seniority,
+         sex,
+         teacher_id) %>%
+  group_by(sex,
+           academic_degree) %>%
+  summarize(number_educators = n_distinct(teacher_id),
+            seniority_median = median(seniority))
 
 ```
 
@@ -322,6 +816,12 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-5-2
 
+teacher_evals_clean %>%
+  group_by(course_id, teacher_id) %>%
+  summarize(question_asked = n_distinct(question_no),
+            .groups = "drop") %>%
+  filter(question_asked == 9) %>% 
+  nrow()
 ```
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
@@ -330,14 +830,30 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-6-1
+# Lab 3 Question 11
 
+teacher_evals_clean %>%
+  filter(sex == "female",
+         academic_degree %in% c("dr" , "prof")) %>%
+  group_by(teacher_id) %>%
+  summarize(average_response = mean(resp_share),
+            .groups = "drop") %>%
+  filter(average_response == max(average_response) |
+         average_response == min(average_response))
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-6-2
+# Lab 3 Question 10
 
+teacher_evals_clean %>%
+  filter(seniority == 1) %>%
+  group_by(teacher_id) %>%
+  summarize(percent_fail = mean(percent_failed_cur),
+            .groups = "drop") %>%
+  filter(percent_fail == max(percent_fail) | percent_fail == min(percent_fail))
 ```
 
 **DVS-7: I show creativity in my tables.**
@@ -346,13 +862,30 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dvs-7-1
+# Lab 3 (Question 11 - Revised)
 
+teacher_evals_clean %>%
+  filter(sex == "female",
+         academic_degree %in% c("dr" , "prof")) %>%
+  group_by(teacher_id) %>%
+  summarize(average_response = mean(resp_share),
+            .groups = "drop") %>%
+  filter(average_response == max(average_response) |
+         average_response == min(average_response))
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dvs-7-2
+# Lab 3 (Question 8 - Revised)
+
+teacher_evals_clean %>%
+  group_by(course_id, teacher_id) %>%
+  summarize(question_asked = n_distinct(question_no),
+            .groups = "drop") %>%
+  filter(question_asked == 9) %>% 
+  nrow()
 
 ```
 
@@ -371,6 +904,11 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-1-across
+# Lab 3 Question Question 7 (Revised)
+
+teacher_evals_clean %>%
+  filter(if_any(.cols = course_id:sex,
+                .fns = ~is.na(.x)))
 
 ```
 
@@ -403,7 +941,12 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-3-across
+# Lab 3 Question 6 (Revised)
+# Utilized across with ~n_distinct
 
+teacher_evals_clean %>%
+  summarize(across(.cols = course_id:teacher_id,
+                   .fns = ~n_distinct(.x)))
 ```
 
 -   `map()` function with **one** input (e.g., `map()`, `map_chr()`, `map_dbl()`, etc.)
@@ -426,6 +969,15 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-4-1
+# Lab 4 (Question 4 - Revised)
+
+ca_childcare %>%
+  filter(study_year == 2008 | 
+         study_year == 2018) %>%
+  group_by(Region, study_year) %>%
+  summarise(median_income =  median(mhi_2018)) %>%
+  pivot_wider(names_from = study_year, values_from = median_income) %>%
+  arrange(by = `2018` )
 
 ```
 
@@ -433,6 +985,54 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: pe-4-2
+# Lab 4 (Question 6 - Revised)
+
+ca_childcare %>% 
+  pivot_longer(cols = mc_infant: mc_preschool,
+               names_to = "Type_Childcare",
+               values_to = "Median_Price") %>%
+  mutate(Type_Childcare = recode(Type_Childcare, 
+                                 mc_infant = "Infant", 
+                                 mc_preschool = "Preschool", 
+                                 mc_toddler = "Toddler"),
+         Type_Childcare = factor(Type_Childcare, 
+                                 levels = c("Infant", 
+                                            "Toddler", 
+                                            "Preschool")),
+         Region = factor(Region, 
+                         levels = c("San Francisco Bay Area", 
+                                            "Orange County", 
+                                            "Los Angeles County", 
+                                            "Northern San Joaquin Valley", 
+                                            "Central Coast", 
+                                            "Inland Empire", 
+                                            "Superior California", 
+                                            "Southern San Joaquin Valley", 
+                                            "San Diego - Imperial", 
+                                            "North Coast"))) %>%
+  ggplot(aes(x = study_year, 
+             y = Median_Price, 
+             color = Region)) +
+  geom_point()+
+  geom_smooth(method = "loess", 
+              se = TRUE) +
+  facet_wrap(~Type_Childcare, 
+             nrow = 1)+
+  scale_y_continuous(limits = c(100, 500)) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_manual(name = "California Region", 
+                     values = custom_colors) +
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year", 
+       y = "") +
+  theme_bw()+
+  theme(
+    axis.text.x = element_text(size = 6),
+    axis.text.y = element_text(size = 6),
+    legend.text = element_text(size = 6),
+    legend.title = element_text(size = 6)
+    ) + 
+  coord_fixed(ratio = 0.03)
 
 ```
 
@@ -460,19 +1060,28 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dsm-2-1
+# Challenge 3 (Question 3)
 
+chisq.test(teacher_evals_compare$SET_level, teacher_evals_compare$sen_level)
 ```
 
 -   Example 2
 
 ```{r}
 #| label: dsm-2-2
+# Lab 2 (Question 17)
 
+species_mod <- aov(weight ~ species, 
+                   data = df)
+
+summary(species_mod)
 ```
 
 ## Revising My Thinking
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
+
+During the course, I revised every labs, even up to two times for labs containing concepts that I struggled to master like writing efficient code for summary tables and applying functions to many columns across the data set. For lab 3 particularly question 10 and 11, my first submission contained two inefficient data pipes that displayed two lists, which upon my first revision, I improved on creating one efficient pipeline incorporating min() and max() functions with a slicing to obtain the minimum and maximum value. However, you pointed out a possible improvement that it didn't display all possible values under those conditions, which upon my second revision, I changed the logic to filter out with an or statement to obtain a singular list containing all possible values. Another example on lab 3, I struggled to understand the usage of across(), my first work contained length logic to find distinct entry for the university course and teacher id, but my revised work contained across() that made applying a function across multiple columns more efficient. These are examples of my effort to maximize the efficient and organization of my code over the course. Overall, I've learned to start with understanding the nature of the data first before doing any analytically work, the lab that I received the most "growings" is the lab that I rushed through the summary of the data set. Therefore, the course had taught me to be patient understanding the nature of the data before proceeding, this skill greatly supported me to take the time to make the smallest, but drastic improvement on my code efficient to data visualization on lab 4 replication of your graph, where I read documentation to revise the ratio to font size of each axis.
 
 <!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
 
@@ -480,8 +1089,14 @@ I've done this in the following provided assignments:
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+Through the course, I extended my thinking through exploring different kind of color palettes on my challenges for my ridge plots, I explored with all three given options to choose the theme that match the best with the data.
+
 ## Peer Support & Collaboration
 
 <!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
 
+First off, I think you did a great job at formatting your code, as it is concise and easy to read with the spacing and structure. For question 4, I think there are more columns were selected that could be represented as a factor, instead of numeric, for instance the question_no is more of a factor. For question 6, the summary could have better columns name in this case. I am very impressed with the way you logic question 7, the fact that you used if_any and -c for the two columns to select every columns to check for a condition is quite clean, efficient, and thoughtful. For question 8, even though your code make sense, I think you can be more efficient with less pipes. For some slices command, what if there are many of the same smallest values, I think that could be tricky here. For question 12, I think you can do the same with only one pipe. Overall, great job, your code are very efficient, clean, and easy-to-read. It can be more efficient by reducing the number of pipe making everything in one pipe. Great job!
+
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
+
+In the past week, I have tremendously grew as a collaborator. The first week, I struggled greatly with communication as the roles of developer and coder were often ignored and we did not coordinate well. During the week, where I was partnered with Sylvia, we often communicate on the desired outcome, reading the documentation handout reasoning together the possible solution, and patiently figure out solution no matter the difficulty. Every single activities, we finished in class on time utilizing every minutes of the class. Personally, I worked on communication greatly, often in the past where I stayed quiet being anxious of being incorrect. In the recent weeks, I've learned to listen to my partner ideas, combining with sharing my R experience from previous research experience to show my partner the different form of logic that can be particularly useful as a coder. I am very proud of my partner and myself for our accomplishments in the past weeks.
